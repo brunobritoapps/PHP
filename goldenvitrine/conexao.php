@@ -1,0 +1,289 @@
+<?
+
+							 
+$db_name   = "(DESCRIPTION = (ADDRESS = (PROTOCOL = TCP)(HOST = 192.168.0.112)(PORT = 1521))
+							 (CONNECT_DATA = (SERVER = DEDICATED)(SERVICE_NAME = GCPROD)))";
+
+$db_user   = "protheusv12";
+$db_pass   = "pr0th3u5iiv12";
+
+ $conexao = oci_connect($db_user, $db_pass, $db_name);
+
+ /*
+  $cons = "SELECT 
+					distinct DTR_DATINI AS VIA_DTINI,
+					DTR_DATFIM AS VIA_DTFIM,
+					DTR_VIAGEM AS FRE_FRETE,
+					DT6_PRZENT AS VIA_DTDISPO,
+					
+					A1_EST AS VIA_UFFIM,
+					A1_MUN AS VIA_CDFIMVIA,
+					
+					'REGIAO' AS VIA_FIMVIA,
+					DTR_CODVEI AS MOT_VEICU,
+					DA3_DESC AS MOT_CARROC,
+					DTR_CODRB1 AS MOT_PLACA1,
+					DTR_CODRB2 AS MOT_PLACA2 ,
+					DA4_NOME AS MOT_NOME,
+					DA4_TEL AS MOT_TELEF,
+					'TIPO FROTA' AS MOT_TPFROTA,
+					DT6_DOC AS PAG_NUMCTE,
+					'TIPO PAG' AS PAG_TPPAG,
+					'DT ACERTO' AS PAG_DTACERTO
+					FROM PROTHEUSV12.DTQ010 
+					INNER JOIN PROTHEUSV12.DT6010 ON protheusv12.dtq010.dtq_filial = protheusv12.dt6010.dt6_filial AND protheusv12.dtq010.dtq_viagem = protheusv12.dt6010.dt6_numvga
+					INNER JOIN PROTHEUSV12.SA1010 ON PROTHEUSV12.sa1010.a1_cod = protheusv12.dt6010.dt6_clides AND protheusv12.sa1010.a1_loja = protheusv12.dt6010.dt6_lojdes
+					INNER JOIN PROTHEUSV12.DTR010 ON PROTHEUSV12.DTR010.DTR_FILORI = protheusv12.DTQ010.DTQ_FILORI AND protheusv12.DTR010.DTR_VIAGEM = protheusv12.dtq010.dtq_viagem
+					INNER JOIN PROTHEUSV12.da3010 ON protheusv12.DTR010.DTR_CODVEI = protheusv12.da3010.da3_cod
+					INNER JOIN PROTHEUSV12.dup010 ON protheusv12.DTR010.DTR_VIAGEM = protheusv12.dup010.dup_viagem
+					INNER JOIN PROTHEUSV12.da4010 ON protheusv12.dup010.dup_codmot = protheusv12.da4010.da4_cod
+			WHERE DTQ_DATGER >= To_Char(SYSDATE - 1, 'YYYYMMDD' )
+            AND   DTQ_FILORI not in ('01028','01022','01012','01019','01024','01006','01033','01025','01035') 
+			and   dtq_fildes not in ('01931','01020','01901')
+			order by DTR_VIAGEM			"; */
+			
+	 $cons = "SELECT * FROM (
+						
+								SELECT 
+											 distinct 
+											  DTR010.DTR_DATINI AS VIA_DTINI,
+											  DTR010.DTR_DATFIM AS VIA_DTFIM,
+											  DTR010.DTR_VIAGEM AS FRE_FRETE,
+											  --DT6_PRZENT AS VIA_DTDISPO, 
+											  (select DT6_PRZENT from dt6010 
+																			 where d_e_l_e_t_ <> '*'
+																			 and   dt6_fildoc||dt6_doc||dt6_serie = 
+																													  (select dud_fildoc||dud_doc||dud_serie from dud010 dud1
+																													  where dud1.d_e_l_e_t_ <> '*'
+																													  and   dud1.dud_viagem = PROTHEUSV12.DTQ010.DTQ_VIAGEM
+																													  and   dud1.dud_sequen = (
+																																			Select max(dua2.dud_sequen)
+																																			from dud010 dua2
+																																			where dua2.d_e_l_e_t_ <> '*'
+																																			and   dua2.dud_viagem = PROTHEUSV12.DTQ010.DTQ_VIAGEM))) VIA_DTDISPO,
+											  
+											  
+												--A1_EST AS VIA_UFFIM,
+												(select A1_EST from sa1010 
+												  where d_e_l_e_t_ <> '*'
+												  and   a1_cod||a1_loja =(
+																			 select dt6_clides||dt6_lojdes from dt6010 
+																			 where d_e_l_e_t_ <> '*'
+																			 and   dt6_fildoc||dt6_doc||dt6_serie = 
+																													  (select dud_fildoc||dud_doc||dud_serie from dud010 dud1
+																													  where dud1.d_e_l_e_t_ <> '*'
+																													  and   dud1.dud_viagem = PROTHEUSV12.DTQ010.DTQ_VIAGEM
+																													  and   dud1.dud_sequen = (
+																																			Select max(dua2.dud_sequen)
+																																			from dud010 dua2
+																																			where dua2.d_e_l_e_t_ <> '*'
+																																			and   dua2.dud_viagem = PROTHEUSV12.DTQ010.DTQ_VIAGEM)))) VIA_UFFIM,
+											--A1_MUN AS VIA_CDFIMVIA,
+											   (select 'ENTREGA -> '||A1_MUN from sa1010 
+												  where d_e_l_e_t_ <> '*'
+												  and   a1_cod||a1_loja =(
+																			 select dt6_clides||dt6_lojdes from dt6010 
+																			 where d_e_l_e_t_ <> '*'
+																			 and   dt6_fildoc||dt6_doc||dt6_serie = 
+																													  (select dud_fildoc||dud_doc||dud_serie from dud010 dud1
+																													  where dud1.d_e_l_e_t_ <> '*'
+																													  and   dud1.dud_viagem = PROTHEUSV12.DTQ010.DTQ_VIAGEM
+																													  and   dud1.dud_sequen = (
+																																			Select max(dua2.dud_sequen)
+																																			from dud010 dua2
+																																			where dua2.d_e_l_e_t_ <> '*'
+																																			and   dua2.dud_viagem = PROTHEUSV12.DTQ010.DTQ_VIAGEM)))) VIA_CDFIMVIA,
+											  
+											  
+											
+											'REGIAO' AS VIA_FIMVIA,
+											DTR010.DTR_CODVEI AS MOT_VEICU,
+											TRIM(DA3010.DA3_DESC)||' - '||TRIM(REB.DA3_DESC) AS MOT_CARROC,
+											DTR010.DTR_CODRB1 AS MOT_PLACA1,
+											DTR010.DTR_CODRB2 AS MOT_PLACA2 ,
+											DA4010.DA4_NOME AS MOT_NOME,
+											DA4010.DA4_TEL AS MOT_TELEF,
+											'TIPO FROTA' AS MOT_TPFROTA,
+											--DT6_DOC AS PAG_NUMCTE,
+											  
+											(select DT6_DOC from dt6010 
+																			 where d_e_l_e_t_ <> '*'
+																			 and   dt6_fildoc||dt6_doc||dt6_serie = 
+																													  (select dud_fildoc||dud_doc||dud_serie from dud010 dud1
+																													  where dud1.d_e_l_e_t_ <> '*'
+																													  and   dud1.dud_viagem = PROTHEUSV12.DTQ010.DTQ_VIAGEM
+																													  and   dud1.dud_sequen = (
+																																			Select max(dua2.dud_sequen)
+																																			from dud010 dua2
+																																			where dua2.d_e_l_e_t_ <> '*'
+																																			and   dua2.dud_viagem = PROTHEUSV12.DTQ010.DTQ_VIAGEM))) PAG_NUMCTE,
+											  
+											  
+											'TIPO PAG' AS PAG_TPPAG,
+											'DT ACERTO' AS PAG_DTACERTO
+											  
+														FROM PROTHEUSV12.DTQ010 DTQ010
+														--INNER JOIN PROTHEUSV12.DT6010 ON protheusv12.dtq010.dtq_filial = protheusv12.dt6010.dt6_filial AND protheusv12.dtq010.dtq_viagem = protheusv12.dt6010.dt6_numvga
+												--INNER JOIN PROTHEUSV12.SA1010 ON PROTHEUSV12.sa1010.a1_cod = protheusv12.dt6010.dt6_clides AND protheusv12.sa1010.a1_loja = protheusv12.dt6010.dt6_lojdes
+														INNER JOIN PROTHEUSV12.DTR010 ON PROTHEUSV12.DTR010.DTR_FILORI = protheusv12.DTQ010.DTQ_FILORI AND protheusv12.DTR010.DTR_VIAGEM = protheusv12.dtq010.dtq_viagem AND  protheusv12.DTR010.D_E_L_E_T_ <> '*'
+														INNER JOIN PROTHEUSV12.da3010 ON protheusv12.DTR010.DTR_CODVEI = protheusv12.da3010.da3_cod AND protheusv12.da3010.D_E_L_E_T_ <> '*' and protheusv12.da3010.da3_frovei in ('1','3')
+														INNER JOIN PROTHEUSV12.dup010 ON protheusv12.DTR010.DTR_VIAGEM = protheusv12.dup010.dup_viagem AND protheusv12.dup010.D_E_L_E_T_ <> '*'
+														INNER JOIN PROTHEUSV12.da4010 ON protheusv12.dup010.dup_codmot = protheusv12.da4010.da4_cod AND protheusv12.da4010.D_E_L_E_T_ <> '*'
+														LEFT  JOIN PROTHEUSV12.da3010 reb ON protheusv12.DTR010.DTR_CODRB1 = protheusv12.reb.da3_cod AND protheusv12.reb.D_E_L_E_T_ <> '*' and protheusv12.reb.da3_frovei in ('1','3')
+												WHERE DTQ010.DTQ_DATGER >= To_Char(SYSDATE - 1, 'YYYYMMDD' )
+										  AND   DTQ010.DTQ_FILORI not in ('01028','01022','01012','01019','01024','01006','01033','01025','01035') 
+										  AND   DTQ010.DTQ_SERTMS = '3'
+										  AND   DTQ010.DTQ_TIPVIA IN ('1','3','4','5')   
+										  AND   DTQ010.D_E_L_E_T_ <> '*'
+														
+									union all 
+									
+								SELECT 
+											  distinct 
+											  DTR010.DTR_DATINI AS VIA_DTINI,
+											  DTR010.DTR_DATFIM AS VIA_DTFIM,
+											  DTR010.DTR_VIAGEM AS FRE_FRETE,
+											  --DT6_PRZENT AS VIA_DTDISPO, 
+											  (select DT6_PRZENT from dt6010 
+																			 where d_e_l_e_t_ <> '*'
+																			 and   dt6_fildoc||dt6_doc||dt6_serie = 
+																													  (select dud_fildoc||dud_doc||dud_serie from dud010 dud1
+																													  where dud1.d_e_l_e_t_ <> '*'
+																													  and   dud1.dud_viagem = PROTHEUSV12.DTQ010.DTQ_VIAGEM
+																													  and   dud1.dud_sequen = (
+																																			Select max(dua2.dud_sequen)
+																																			from dud010 dua2
+																																			where dua2.d_e_l_e_t_ <> '*'
+																																			and   dua2.dud_viagem = PROTHEUSV12.DTQ010.DTQ_VIAGEM))) VIA_DTDISPO,
+											  
+											  
+												--A1_EST AS VIA_UFFIM,
+												(select A1_EST from sa1010 
+												  where d_e_l_e_t_ <> '*'
+												  and   a1_cgc =( select zb0_cgc from zb0010
+																  where d_e_l_e_t_ <> '*'
+																  and   zb0_filial = dtq010.dtq_fildes
+																  
+																			  )) VIA_UFFIM,
+												--A1_MUN AS VIA_CDFIMVIA,
+											   (select  'TRANSF -> '||DTQ010.DTQ_FILORI||' x '||DTQ010.DTQ_FILDES||' - '||A1_MUN  from sa1010 
+												  where d_e_l_e_t_ <> '*'
+												  and   a1_cgc =( select zb0_cgc from zb0010
+																  where d_e_l_e_t_ <> '*'
+																  and   zb0_filial = dtq010.dtq_fildes
+																  
+																			  )) VIA_CDFIMVIA,
+											  
+											  
+											'REGIAO' AS VIA_FIMVIA,
+											DTR010.DTR_CODVEI AS MOT_VEICU,
+											TRIM(DA3010.DA3_DESC)||' - '||TRIM(REB.DA3_DESC) AS MOT_CARROC,
+											DTR010.DTR_CODRB1 AS MOT_PLACA1,
+											DTR010.DTR_CODRB2 AS MOT_PLACA2 ,
+											DA4010.DA4_NOME AS MOT_NOME,
+											DA4010.DA4_TEL AS MOT_TELEF,
+											'TIPO FROTA' AS MOT_TPFROTA,
+											--DT6_DOC AS PAG_NUMCTE,
+											  
+											  (select DT6_DOC from dt6010 
+																			 where d_e_l_e_t_ <> '*'
+																			 and   dt6_fildoc||dt6_doc||dt6_serie = 
+																													  (select dud_fildoc||dud_doc||dud_serie from dud010 dud1
+																													  where dud1.d_e_l_e_t_ <> '*'
+																													  and   dud1.dud_viagem = PROTHEUSV12.DTQ010.DTQ_VIAGEM
+																													  and   dud1.dud_sequen = (
+																																			Select max(dua2.dud_sequen)
+																																			from dud010 dua2
+																																			where dua2.d_e_l_e_t_ <> '*'
+																																			and   dua2.dud_viagem = PROTHEUSV12.DTQ010.DTQ_VIAGEM))) PAG_NUMCTE,
+											  
+											  
+											'TIPO PAG' AS PAG_TPPAG,
+											'DT ACERTO' AS PAG_DTACERTO
+											  
+														FROM PROTHEUSV12.DTQ010 DTQ010
+														--INNER JOIN PROTHEUSV12.DT6010 ON protheusv12.dtq010.dtq_filial = protheusv12.dt6010.dt6_filial AND protheusv12.dtq010.dtq_viagem = protheusv12.dt6010.dt6_numvga
+												--INNER JOIN PROTHEUSV12.SA1010 ON PROTHEUSV12.sa1010.a1_cod = protheusv12.dt6010.dt6_clides AND protheusv12.sa1010.a1_loja = protheusv12.dt6010.dt6_lojdes
+														INNER JOIN PROTHEUSV12.DTR010 ON PROTHEUSV12.DTR010.DTR_FILORI = protheusv12.DTQ010.DTQ_FILORI AND protheusv12.DTR010.DTR_VIAGEM = protheusv12.dtq010.dtq_viagem AND protheusv12.DTR010.D_E_L_E_T_ <> '*'
+														INNER JOIN PROTHEUSV12.da3010 ON protheusv12.DTR010.DTR_CODVEI = protheusv12.da3010.da3_cod AND protheusv12.da3010.D_E_L_E_T_ <> '*' and protheusv12.da3010.da3_frovei in ('1','3')
+														INNER JOIN PROTHEUSV12.dup010 ON protheusv12.DTR010.DTR_VIAGEM = protheusv12.dup010.dup_viagem AND protheusv12.dup010.D_E_L_E_T_ <> '*'
+														INNER JOIN PROTHEUSV12.da4010 ON protheusv12.dup010.dup_codmot = protheusv12.da4010.da4_cod AND protheusv12.da4010.D_E_L_E_T_ <> '*'
+														LEFT  JOIN PROTHEUSV12.da3010 reb ON protheusv12.DTR010.DTR_CODRB1 = protheusv12.reb.da3_cod AND protheusv12.reb.D_E_L_E_T_ <> '*' and protheusv12.reb.da3_frovei in ('1','3')
+												WHERE DTQ010.DTQ_DATGER >= To_Char(SYSDATE - 1, 'YYYYMMDD' )
+										  AND   DTQ010.DTQ_FILORI not in ('01028','01022','01012','01019','01024','01006','01033','01025','01035') 
+										  AND   DTQ010.DTQ_FILDES not in ('01931','01020','01901','01004','01902')
+										  AND   DTQ010.DTQ_SERTMS = '2'
+										  AND   DTQ010.DTQ_TIPVIA IN ('1','3','4','5')  
+										  AND   DTQ010.D_E_L_E_T_ <> '*'
+											 
+										  )
+										  
+											WHERE VIA_UFFIM <> 'SP'
+											
+																
+				";
+
+	 
+	    //01004 - UBAT | 01901 - GUJT | 01020 - SAOT | 01931 - SUMT | 01902 - IGAT
+		//TRAZER ROTAS DIFERENTES DA TRANSFERENCIA ENTRE ELAS
+		//REGIAO FINAL (SAO/FSA)
+	    $stmt_con = oci_parse($conexao,$cons); 
+        oci_execute($stmt_con);
+        
+		
+		//$row_con = oci_fetch_array($stmt_con);
+
+		oci_close($conexao); 
+ 
+ 
+ while ($row_con = oci_fetch_array($stmt_con)){
+	 
+	 
+		    $VIA_DTINI=$row_con["VIA_DTINI"];
+            $VIA_DTFIM=$row_con["VIA_DTFIM"];
+			$FRE_FRETE=$row_con["FRE_FRETE"];
+            //$VIA_DTDISPO=$row_con["VIA_DTDISPO"];
+			$VIA_DTDISPO=$row_con["VIA_DTFIM"];
+            $VIA_UFFIM=$row_con["VIA_UFFIM"];
+            $VIA_CDFIMVIA=$row_con["VIA_CDFIMVIA"];
+            $MOT_VEICU=$row_con["MOT_VEICU"];
+            $MOT_CARROC=$row_con["MOT_CARROC"];
+            $MOT_PLACA1=$row_con["MOT_PLACA1"];
+            $MOT_PLACA2=$row_con["MOT_PLACA2"];
+            $MOT_NOME=$row_con["MOT_NOME"];
+            $MOT_TELEF=$row_con["MOT_TELEF"];
+            $MOT_TPFROTA=$row_con["MOT_TPFROTA"];
+            $PAG_NUMCTE=$row_con["PAG_NUMCTE"];
+            $PAG_TPPAG=$row_con["PAG_TPPAG"];
+            $PAG_DTACERTO=$row_con["PAG_DTACERTO"];	
+			//$RES_STATUS="A";	
+			
+			echo $FRE_FRETE."<br>";
+			
+			//CONEXAO COM O BANCO
+			include("config.php");
+			//$db = mysqli_connect('127.0.0.1','root','','gcvitrine');
+
+			$sqlSEL    = "SELECT * FROM `rotas` WHERE FRE_FRETE = '$FRE_FRETE'";
+			//CONSULTAR SE JA EXISTE O REGISTRO NA TABELA DE ROTAS			
+			$resultSEL = mysqli_query($db, $sqlSEL); 
+			$row_cnt   = mysqli_num_rows($resultSEL)>=1;
+			
+			
+			
+			
+			//COMANDO SELECT PARA REALIZAR A INSERCAO DOS DADOS																																							VIA_DTINI,VIA_DTFIM,VIA_DTDISPO,VIA_UFFIM,VIA_CDFIMVIA,MOT_VEICU,MOT_CARROC,MOT_PLACA1,MOT_PLACA2,MOT_NOME,MOT_TELEF,MOT_TPFROTA,PAG_NUMCTE,PAG_TPPAG,PAG_DTACERTO			
+                        
+			   if($row_cnt){
+				//echo"<scriptSql RELATORIO PERFORMANCE language='javascript' type='text/javascript'>window.location.href='rotas.php'</scriptSql RELATORIO PERFORMANCE>";
+				   }else{				
+				   $sqlINTO = "insert into rotas (VIA_DTINI,VIA_DTFIM,VIA_DTDISPO,VIA_UFFIM,VIA_CDFIMVIA,MOT_VEICU,MOT_CARROC,MOT_PLACA1,MOT_PLACA2,MOT_NOME,MOT_TELEF,MOT_TPFROT,PAG_NUMCTE,PAG_TPPAG,PAG_DTACERTO,FRE_FRETE,RES_STATUS) VALUES('$VIA_DTINI','$VIA_DTFIM','$VIA_DTDISPO','$VIA_UFFIM','$VIA_CDFIMVIA','$MOT_VEICU','$MOT_CARROC','$MOT_PLACA1','$MOT_PLACA2','$MOT_NOME','$MOT_TELEF','$MOT_TPFROTA','$PAG_NUMCTE','$PAG_TPPAG','$PAG_DTACERTO','$FRE_FRETE','A')";
+				   $resultINTO = mysqli_query($db, $sqlINTO); 		
+
+				}
+				
+			//Fecha conexao 
+			mysqli_close($db);
+}									 
+
+?>

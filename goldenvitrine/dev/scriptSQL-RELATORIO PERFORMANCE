@@ -1,0 +1,74 @@
+SELECT
+                 a.fre_frete
+                ,DATE_FORMAT(a.via_dtini, "%d-%m-%Y") AS dtini
+                ,DATE_FORMAT(a.via_dtdispo, "%d-%m-%Y") AS dtdispo
+                ,DATE_FORMAT(b.res_dtinc, "%d-%m-%Y") AS res_dtinc
+                ,a.via_cdfimvia
+                ,a.via_uffim
+                ,a.mot_veicu
+                ,a.mot_placa1
+                ,a.mot_carroc
+                ,a.res_status
+                ,b.res_nrcte
+                ,b.res_totfin
+                ,UPPER(b.res_embarca) as res_embarca
+                ,b.res_destina
+                ,b.res_tpcarga
+                ,b.res_peso
+                ,b.res_bcidade
+                ,b.res_ccidade
+                ,CASE res_status
+                    WHEN 'P' THEN 'MANUTENCAO'
+                    WHEN 'R' THEN
+                       CASE res_embarca
+                         WHEN 'RETORNO VAZIO' THEN 'RETORNO VAZIO'
+                       ELSE
+                         'FRETE-RETORNO'
+                       END
+                 ELSE 'EM-ABERTO'
+                 END AS desc_status
+                FROM rotas AS a
+                LEFT JOIN reservas AS b ON a.fre_frete = b.res_numrese
+                --WHERE a.via_dtini BETWEEN '2018-11-23' AND '2018-11-23'
+                --ORDER BY a.via_dtini
+
+
+SELECT
+                 a.fre_frete
+                 ,DATE_FORMAT(a.via_dtini, "%d/%m/%Y") AS dataini
+                ,a.via_cdfimvia
+                ,a.via_uffim
+                ,a.mot_veicu
+                ,a.mot_placa1
+                ,a.mot_carroc
+                ,a.res_status
+                ,b.res_nrcte
+                ,b.res_totfin
+                ,UPPER(b.res_embarca) AS res_embarca
+                ,b.res_destina
+                ,b.res_tpcarga
+                ,b.res_peso
+                ,b.res_bcidade
+                ,b.res_ccidade
+                ,CASE res_status
+                    WHEN 'P' THEN 'MANUTENCAO'
+                    WHEN 'R' THEN
+                       CASE res_embarca
+                         WHEN 'RETORNO VAZIO' THEN 'RETORNO VAZIO'
+                       ELSE
+                         'FRETE-RETORNO'
+                       END
+                    ELSE 'EM-ABERTO'
+                  END AS desc_status
+                FROM rotas AS a
+                LEFT JOIN reservas AS b ON a.fre_frete = b.res_numrese
+                WHERE dataini='22/11/2018'
+                 BETWEEN '22/11/2018' AND '23/11/2018'
+                ORDER BY a.dataini
+
+
+SELECT CONVERT(VARCHAR(10), @DATE, 120) AS 'DATA-FORMAT-120',CONVERT(VARCHAR(10), @DATE, 105) AS 'DATA-FORMAT-105',
+
+SELECT DATE_FORMAT("2017-06-15", "%e-%c-%Y");
+
+SELECT DATE_FORMAT("2017-06-15", "%W %M %e %Y");
